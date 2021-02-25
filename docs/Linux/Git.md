@@ -43,4 +43,14 @@ Delete the <old_name> remote branch:
 
     git verify-commit cce09ca
 
+## Clear Git history without removing repository
 
+    cd myrepo
+    rm -rf .git
+
+    git init
+    git add .
+    git commit -m "initial commit"
+
+    git remote add origin github.com:yourhandle/yourrepo.git
+    git push -u --force origin master
