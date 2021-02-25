@@ -1,0 +1,32 @@
+site_name: Notes techniques
+site_url: https://sebastienpascalpoher.github.io/notes
+site_description: Recueil de notes techniques
+repo_name: "Github"
+repo_url: https://github.com/sebastienpascalpoher/notes
+use_directory_urls: true
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - fenced_code
+  - footnotes
+  - meta
+  - nl2br
+  - smarty
+  - tables
+  - toc
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.magiclink
+  - pymdownx.details
+
+theme:
+    name: material
+    highlightjs: true
+    font: false
+    palette:
+      primary: 'blue grey'
+      accent: 'indigo'
+    feature:
+      tabs: false

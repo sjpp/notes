@@ -1,0 +1,20 @@
+# Tmux
+
+## Autostart Tmux with systemd
+
+```
+\#/etc/systemd/system/tmux@.service
+
+[Unit]
+Description=Start tmux in detached session
+
+[Service]
+Type=forking
+User=%I
+WorkingDirectory=/home/%I
+ExecStart=/usr/bin/tmux new-session -s %u -d
+ExecStop=/usr/bin/tmux kill-session -t %u
+
+[Install]
+WantedBy=multi-user.target
+```
