@@ -2,4 +2,4 @@
 
 This repo contains my technical notes.
 
-It is available at https://sebastienpascalpoher.github.io/notes
+It is available at https://sjpp.github.io/notes
