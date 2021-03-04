@@ -1,12 +1,12 @@
 # MkDocs
 
-## Installer MkDocs avec les plugins
+## Install MkDocs with plugins
 
 	pip3 install --upgrade \
     mkdocs \
     mkdocs-material \
     pymdown-extensions
 
-## Afficher le site
+## Build and display site
 
 	mkdocs serve
