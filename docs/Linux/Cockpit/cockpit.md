@@ -1,33 +1,33 @@
 # Cockpit
 
-## Configuration de l'authentification à double facteur
+## Configure 2 factor authentication
 
-* Installation du paquet requis
+* Install requierments
 
         dnf install google-authenticator
 
-* Première configuration
+* Configuration
 
-  En tant qu'utilisateur, lancer la commande suivante pour configuration le paquet:
+  As user, initialize package configuration with the following command:
 
       google-authenticator
 
-  Répondre aux questions, vérifier le code et sauvegarder les *recovery codes*.
+  It will ask you a set of questions, once answered, check the given code and copy the *recovery codes* (keep them in a safe place).
 
-  Pour éviter un soucis avec SELinux qui interdit l'accès à Cockpit à ce fichier et aux fichiers temporaires créés, il faut créer un dossier dédié et y mettre le bon contexte SELinux (voir ci-après).
+  To avoid issue with SELinux preventing Cockpit's access to this file and to others to be created temporary files, create a dedicated directory and set the rigth SELinux context (see below).
 
         mkdir ~/.secrets
         mv .google_authenticator* .secrets/
 
-* Configurer `pam`
+* Configure `pam`
 
-  Éditer `/etc/pam.d/cockpit`
+  Edit `/etc/pam.d/cockpit` and add the following:
 
       auth       required     pam_google_authenticator.so secret=/home/${USER}/.secrets/.google_authenticator
 
-### Configurer SELinux pour Cockpit
+### Configure SELinux for Cockpit
 
-* Mettre le bon contexte
+* Set the rigth context
 
         semanage fcontext -a -t cockpit_tmp_t "/home/$USER/.secrets(/.*)?"
         restorecon -R -v /home/$USER/.secrets

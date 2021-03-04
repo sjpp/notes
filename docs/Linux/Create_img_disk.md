@@ -5,7 +5,7 @@ tags:
     - various
 ---
 
-## How to create and "img" disk
+## How to create an "img" disk
 
 * The necessary commands to perform this task are as follows:
 

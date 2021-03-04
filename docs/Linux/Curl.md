@@ -7,11 +7,11 @@ tags:
     - imap
 ---
 
-## # Exemple basique
+## Basic example
 
     curl -v -s https://linuxfr.org
 
-## Récup fichier
+## Get a file
 
     curl -ROL https://fichier
 
@@ -19,7 +19,7 @@ tags:
 
     curl --user name:password http://www.example.com
 
- ##  Résoudre sur un nom différent
+##  Resolve on a different name
 
     curl --resolve www.server.com:443:213.162.53.103 https://www.server.com/
 

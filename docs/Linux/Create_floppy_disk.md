@@ -5,7 +5,9 @@ tags:
     - cli
 ---
 
-​The necessary commands to perform this task are as follows:
+## How to create a floppy disk
+
+The necessary commands to perform this task are as follows:
 
     dd if=/dev/zero of=floppy.img bs=1k count=1440
 

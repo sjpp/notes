@@ -3,11 +3,11 @@ tags:
     - linux
 ---
 
-Démarrer avec busybox, dans Grub
+Start with busybox in Grub
 
     init=/bin/busybox
 
-L'utiliser
+Use it:
 
     busybox-static ls # ou dmesg ou autre commande
 
