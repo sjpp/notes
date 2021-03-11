@@ -50,3 +50,8 @@ As long as the file is not a symlink or hardlink, you can use sed, tail, or awk.
 ### Replace between strings
 
     sed -n -e '/Word A/,/Word D/ p' file
+
+### Remove carriage return and merge lines
+
+    # exemple to remove 'server_alias' from line 2 and merge it with line 1:
+    sed -e ':a' -e 'N' -e '$!ba' -e 's/\;\n  server_alias//g' -i file
