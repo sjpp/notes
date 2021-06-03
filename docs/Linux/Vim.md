@@ -34,3 +34,6 @@ Vim has a very powerful built-in sort utility, or it can interface with an exter
 
     vimdiff /path/to/file scp://remotehost//path/to/file
 
+* Enregistrer un fichier en tant que *root*
+
+	:w !sudo tee %
