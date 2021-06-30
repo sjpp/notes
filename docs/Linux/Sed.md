@@ -55,3 +55,8 @@ As long as the file is not a symlink or hardlink, you can use sed, tail, or awk.
 
     # exemple to remove 'server_alias' from line 2 and merge it with line 1:
     sed -e ':a' -e 'N' -e '$!ba' -e 's/\;\n  server_alias//g' -i file
+
+### Insert new line at top of file
+
+    # 1i is important, the leading \ pushes the content at line 2
+    sed -i -e '1i# {{ ansible_managed }}\' $file
