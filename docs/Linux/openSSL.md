@@ -13,30 +13,31 @@ tags:
 ## Generate a self signed certificate
 
     #!/bin/sh
-    
-    _HOST=$1
-    
-    openssl genrsa -out $_HOST.key.pem 2048
-    openssl req -x509 -new -nodes -days 1460 -sha256 -key $_HOST.key.pem -out $_HOST.cert.pem
-    
-    openssl genrsa -out $_HOST.key 2048
-    openssl req -new -sha256 -key $_HOST.key -out $_HOST.csr
-    
-    openssl x509 -req -days 1460 -sha256 -in $_HOST.csr -CA $_HOST.cert.pem -CAkey $_HOST.key.pem -CAcreateserial -out $_HOST.crt
-    
-    # Optional
-    #openssl dhparam -out /etc/ssl/$_HOST.dhparams.pem 2048
-    
-    chmod 444 $_HOST.cert.pem
-    chmod 444 $_HOST.crt
-    chmod 400 $_HOST.key.pem
-    chmod 400 $_HOST.key
-    
-    # Optionel
-    #mv $_HOST.key.pem private/
-    #mv $_HOST.cert.pem certs/
-    #mv $_HOST.key private/
-    #mv $_HOST.crt certs/
+
+    if [ "$#" -ne 1 ]
+    then
+      echo "Usage: Must supply a domain"
+      exit 1
+    fi
+
+    DOMAIN=$1
+
+    cd ~/certs
+
+    openssl genrsa -out $DOMAIN.key 2048
+    openssl req -new -key $DOMAIN.key -out $DOMAIN.csr
+
+    cat > $DOMAIN.ext << EOF
+    authorityKeyIdentifier=keyid,issuer
+    basicConstraints=CA:FALSE
+    keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+    subjectAltName = @alt_names
+    [alt_names]
+    DNS.1 = $DOMAIN
+    EOF
+
+    openssl x509 -req -in $DOMAIN.csr -CA ../myCA.pem -CAkey ../myCA.key -CAcreateserial \
+    -out $DOMAIN.crt -days 825 -sha256 -extfile $DOMAIN.ext
 
 ## Decode certif p12 
 
