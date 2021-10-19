@@ -36,4 +36,8 @@ Vim has a very powerful built-in sort utility, or it can interface with an exter
 
 * Enregistrer un fichier en tant que *root*
 
-	:w !sudo tee %
+    :w !sudo tee %
+
+* Remove blank line from a file
+
+    :g/^$/d
