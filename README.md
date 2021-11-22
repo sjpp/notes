@@ -19,3 +19,4 @@ To build the doc
 Deploy on Github Pages:
 
 	podman run --rm -it -v ~/.ssh:/root/.ssh:Z -v ${PWD}:/docs:Z squidfunk/mkdocs-material:latest gh-deploy
+test
