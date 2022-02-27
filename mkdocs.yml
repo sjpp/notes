@@ -1,8 +1,8 @@
 site_name: Technical notes
 site_url: https://sjpp.github.io/notes
 site_description: Random bunch of technical notes and various tips
-repo_name: "Github"
-repo_url: https://github.com/sjpp/notes
+repo_name: "Gitea"
+repo_url: https://git.volted.net/spoher/notes
 use_directory_urls: true
 
 markdown_extensions:
