@@ -60,3 +60,7 @@ As long as the file is not a symlink or hardlink, you can use sed, tail, or awk.
 
     # 1i is important, the leading \ pushes the content at line 2
     sed -i -e '1i# {{ ansible_managed }}\' $file
+
+### Replace new lines by spaces
+
+    sed ':a;N;$!ba;s/\n/ /g' $file
