@@ -117,4 +117,8 @@ Créer un pont entre serveur et local en tapant dans un terminal de ce dernier
 
 Vous pouvez désormais atteindre le poste distant en saisissant dans le terminal du poste local connecté précédemment sur serveur
 
-	ssh -p 12345 userD@localhost
+    ssh -p 12345 userD@localhost
+
+#### Obtenir les clés de la machine locale
+
+    ssh-keyscan -t ecdsa-sha2-nistp256 localhost | ssh-keygen -lf -
