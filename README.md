@@ -1,4 +1,4 @@
-## Notes and code / command lines snippets
+## Notes and code / command lines snippets and other stuff
 
 This repo contains my technical notes.
 
