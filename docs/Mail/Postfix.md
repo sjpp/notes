@@ -88,3 +88,23 @@ We can change the queue directory from the postfix conf.
 ### Test your own Mailserver against attacks
 
     telnet mail-abuse.org
+
+### Fix For Postfix Error: `postdrop: Warning: Unable To Look Up Public/pickup: No Such File Or Directory`
+
+Après installation de *postfix*, lors de l'envoi du premier mail, il y a cette erreur :
+
+	postdrop: warning: unable to look up public/pickup: No such file or directory.
+
+Cela se produit car *sendmail* est installé et entre en conflit avec *postfix*
+Pour corriger il faut l'arrêter et créer un dossier manquant:
+
+```
+sudo systemctl disable --now sendmail
+sudo dnf remove sendmail
+
+mkfifo /var/spool/postfix/public/pickup
+
+sudo systemctl restart postfix
+```
+
+*source: https://westonganger.com/posts/fix-for-postfix-error-postdrop-warning-unable-to-look-up-public-pickup-no-such-file-or-directory*
