@@ -1,0 +1,2864 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Random bunch of technical notes and various tips">
+      
+      
+      
+        <link rel="canonical" href="https://sjpp.github.io/notes/OS/Clonezilla_PXE/">
+      
+      
+        <link rel="prev" href="../../Network/Trafic_error/">
+      
+      
+        <link rel="next" href="../openSUSE_memo/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.8">
+    
+    
+      
+        <title>Clonezilla PXE - Technical notes</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0d440cfe.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mise-en-place-dun-serveur-clonezilla-via-pxe" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Technical notes" class="md-header__button md-logo" aria-label="Technical notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Technical notes
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Clonezilla PXE
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sjpp/notes" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Gitea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Technical notes" class="md-nav__button md-logo" aria-label="Technical notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Technical notes
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sjpp/notes" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Gitea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Cuisine
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Cuisine
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Cuisine/marinade/" class="md-nav__link">
+        Marinade soja pour tofu
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Cuisine/pois_chiche/" class="md-nav__link">
+        Attention au bicabornate
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Cuisine/sarrasin/" class="md-nav__link">
+        Comment cuire le sarrasin.
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Desktop
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Desktop
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Desktop/Manage_Dotfiles_with_Git/" class="md-nav__link">
+        Manage Dotfiles with Git
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Desktop/Pulseaudio%26Bluetooth/" class="md-nav__link">
+        Pulseaudio&Bluetooth
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Desktop/Sync_Github_fork/" class="md-nav__link">
+        Syncing a Github fork
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Divers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Divers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Divers/mkdocs/" class="md-nav__link">
+        MkDocs
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Docker
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Docker
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/Container_backup/" class="md-nav__link">
+        Container backup
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/Databases_backup/" class="md-nav__link">
+        Databases backup
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/General_use/" class="md-nav__link">
+        General use
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/Tips/" class="md-nav__link">
+        General Docker Tips and issues solutions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Filesystems
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Filesystems
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/Filesystems_tricks/" class="md-nav__link">
+        Filesystems tricks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/GlusterFS/" class="md-nav__link">
+        GlusterFS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/LUKS/" class="md-nav__link">
+        LUKS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/LVM/" class="md-nav__link">
+        LVM
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/RAID_Rebuild/" class="md-nav__link">
+        RAID Rebuild
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/RAID_Resize/" class="md-nav__link">
+        RAID Resize
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/ZFS/" class="md-nav__link">
+        ZFS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/sfdisk_usage/" class="md-nav__link">
+        Sfdisk usage
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          GitLab
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          GitLab
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GitLab/local_s3_cache/" class="md-nav__link">
+        Create a local bucket for runners' cache
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GitLab/registry_clean/" class="md-nav__link">
+        Registry Management
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          LDAP
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          LDAP
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/ACL/" class="md-nav__link">
+        LDAP ACL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/ConfigAdmin/" class="md-nav__link">
+        Setup Config Admin
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/LDAP_tunning/" class="md-nav__link">
+        LDAP tunning
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/Monitoring_LDAP/" class="md-nav__link">
+        Monitoring LDAP
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/Recover_admin_password/" class="md-nav__link">
+        Recover admin password lost
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/Reset_slave_state/" class="md-nav__link">
+        Reset slave state
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          Linux
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Linux
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Bluetooth/" class="md-nav__link">
+        Bluetooth
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Busybox/" class="md-nav__link">
+        Busybox
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Copy_sparse_files/" class="md-nav__link">
+        Copier un fichier sparse sur le réseau
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Create_floppy_disk/" class="md-nav__link">
+        Create floppy disk
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Create_img_disk/" class="md-nav__link">
+        Create img disk
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Create_iso_file/" class="md-nav__link">
+        Create iso file
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Curl/" class="md-nav__link">
+        Curl
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Encrypt_files/" class="md-nav__link">
+        Encrypt files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Entropy/" class="md-nav__link">
+        Manage Linux entropy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/GPG/" class="md-nav__link">
+        GPG
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Get_file_creation_time/" class="md-nav__link">
+        Get file creation time
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Get_process_info/" class="md-nav__link">
+        Get process info
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Git/" class="md-nav__link">
+        Git
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Grep_regex/" class="md-nav__link">
+        Grep
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/MPD/" class="md-nav__link">
+        MPD
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Memo/" class="md-nav__link">
+        Memo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/RSyslog/" class="md-nav__link">
+        RSyslog
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Repair_broken_GRUB/" class="md-nav__link">
+        Repair broken GRUB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/SELinux/" class="md-nav__link">
+        SELinux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/SSH/" class="md-nav__link">
+        SSH
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Sed/" class="md-nav__link">
+        Sed
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Set_Kernel_in_Grub/" class="md-nav__link">
+        Set Kernel version in Grub
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Tmpfs/" class="md-nav__link">
+        Add userland tmpfs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Tmux/" class="md-nav__link">
+        Tmux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Vim/" class="md-nav__link">
+        Vim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/openSSL/" class="md-nav__link">
+        openSSL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_27" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_27" id="__nav_9_27_label" tabindex="0">
+          Cockpit
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_27_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_9_27">
+          <span class="md-nav__icon md-icon"></span>
+          Cockpit
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Cockpit/auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Cockpit/cockpit/" class="md-nav__link">
+        Cockpit
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+          Mail
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Mail
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Mail/Postfix/" class="md-nav__link">
+        Postfix
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Mail/Telnet/" class="md-nav__link">
+        Use Telnet to send mail
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+          Network
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_11">
+          <span class="md-nav__icon md-icon"></span>
+          Network
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/App_jail/" class="md-nav__link">
+        App jail
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Carp/" class="md-nav__link">
+        CARP (openBSD)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/FirewallD/" class="md-nav__link">
+        FirewallD
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Keepalived/" class="md-nav__link">
+        Set up Keepalived VIP on RockyLinux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/NetworkManager/" class="md-nav__link">
+        Start shell script on Network Manager successful connection
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Network_Diag/" class="md-nav__link">
+        Network Diag
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/TCPdump/" class="md-nav__link">
+        TCPdump
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Trafic_error/" class="md-nav__link">
+        Trafi error
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+          OS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_12">
+          <span class="md-nav__icon md-icon"></span>
+          OS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Clonezilla PXE
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Clonezilla PXE
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mise-en-place-dun-serveur-clonezilla-via-pxe" class="md-nav__link">
+    Mise en place d'un serveur Clonezilla via PXE
+  </a>
+  
+    <nav class="md-nav" aria-label="Mise en place d'un serveur Clonezilla via PXE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-requis-et-notions-preliminaires" class="md-nav__link">
+    Pré-requis et notions préliminaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-des-paquets-necessaires" class="md-nav__link">
+    Installation des paquets nécessaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-service-dhcp-sur-le-serveur" class="md-nav__link">
+    Configuration du service DHCP sur le serveur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-service-tftp-sur-le-serveur" class="md-nav__link">
+    Configuration du service TFTP sur le serveur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preparation-et-mise-en-place-de-limage-clonezilla" class="md-nav__link">
+    Préparation et mise en place de l'image Clonezilla
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-serveur-nfs" class="md-nav__link">
+    Configuration du serveur NFS
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration du serveur NFS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mise-en-place-des-exports-nfs" class="md-nav__link">
+    Mise en place des exports NFS
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mise-en-place-dune-image-de-boot" class="md-nav__link">
+    Mise en place d'une image de boot
+  </a>
+  
+    <nav class="md-nav" aria-label="Mise en place d'une image de boot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#copie-des-elements-necessaires" class="md-nav__link">
+    Copie des éléments nécessaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-service-pxe" class="md-nav__link">
+    Configuration du service PXE
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mise-en-place-du-dossier-et-fichier-menu-pxe" class="md-nav__link">
+    Mise en place du dossier et fichier menu PXE
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specificites-de-clonezilla" class="md-nav__link">
+    Spécificités de Clonezilla
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utilisation-du-serveur" class="md-nav__link">
+    Utilisation du serveur
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../openSUSE_memo/" class="md-nav__link">
+        openSUSE memo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_3" id="__nav_12_3_label" tabindex="0">
+          CentOS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_3">
+          <span class="md-nav__icon md-icon"></span>
+          CentOS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CentOS/Apache_SeLinux/" class="md-nav__link">
+        Apache SeLinux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CentOS/Colorful_root_prompt/" class="md-nav__link">
+        Colorized prompt for root
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CentOS/vimrc/" class="md-nav__link">
+        Vimrc
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_4" id="__nav_12_4_label" tabindex="0">
+          Centreon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_4">
+          <span class="md-nav__icon md-icon"></span>
+          Centreon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Centreon/SNMP_Config/" class="md-nav__link">
+        Centreon
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_5" id="__nav_12_5_label" tabindex="0">
+          Debian
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_5">
+          <span class="md-nav__icon md-icon"></span>
+          Debian
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Debian/Custom_image/" class="md-nav__link">
+        Custom image
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Debian/Tricks/" class="md-nav__link">
+        Tricks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Debian/apt_conf/" class="md-nav__link">
+        Configuration APT
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_6" id="__nav_12_6_label" tabindex="0">
+          Fedora
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_6">
+          <span class="md-nav__icon md-icon"></span>
+          Fedora
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Fedora/Manage_repositories/" class="md-nav__link">
+        Manage repositories
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+          PAM SSSD
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_13">
+          <span class="md-nav__icon md-icon"></span>
+          PAM SSSD
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAM_SSSD/Disable_fprintd/" class="md-nav__link">
+        Disable fprintd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAM_SSSD/polkit/" class="md-nav__link">
+        Autoriser Polkit Pam avec SSSD
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+          Podman
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_14">
+          <span class="md-nav__icon md-icon"></span>
+          Podman
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Podman/Pods/" class="md-nav__link">
+        Create pods with Podman
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Podman/Tips/" class="md-nav__link">
+        Tips and tricks about Podman
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
+          SQL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_15">
+          <span class="md-nav__icon md-icon"></span>
+          SQL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SQL/MySQL/" class="md-nav__link">
+        MySQL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SQL/PostgreSQL/" class="md-nav__link">
+        PostgreSQL
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_16" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_16" id="__nav_16_label" tabindex="0">
+          Systemd
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_16_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_16">
+          <span class="md-nav__icon md-icon"></span>
+          Systemd
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Systemd/Mount_Shares/" class="md-nav__link">
+        Mount via Systemd Units
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_17" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_17" id="__nav_17_label" tabindex="0">
+          Virt
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_17_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_17">
+          <span class="md-nav__icon md-icon"></span>
+          Virt
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Libvirt_cert/" class="md-nav__link">
+        How to generate and use a cert for Libvirt
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Qemu_mount_image/" class="md-nav__link">
+        Mounting a QEMU Image
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Sparse_file_copy/" class="md-nav__link">
+        Copier un fichier sparse sur le réseau
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Virt-Manager/" class="md-nav__link">
+        Virt Manager
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_18" id="__nav_18_label" tabindex="0">
+          Web
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_18_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_18">
+          <span class="md-nav__icon md-icon"></span>
+          Web
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Nginx/" class="md-nav__link">
+        Nginx
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_18_2" id="__nav_18_2_label" tabindex="0">
+          Apache
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_18_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_18_2">
+          <span class="md-nav__icon md-icon"></span>
+          Apache
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Apache/LetsEncrypt/" class="md-nav__link">
+        LetsEncrypt
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Apache/Mapping/" class="md-nav__link">
+        Create an redirection mapping
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Apache/Redirection/" class="md-nav__link">
+        Redirections Apache
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_18_3" id="__nav_18_3_label" tabindex="0">
+          HAProxy
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_18_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_18_3">
+          <span class="md-nav__icon md-icon"></span>
+          HAProxy
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/HAProxy/Keepalived_VRRP_Config/" class="md-nav__link">
+        Keepalived VRRP Config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/HAProxy/LDAP_configuration/" class="md-nav__link">
+        LDAP configuration
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mise-en-place-dun-serveur-clonezilla-via-pxe" class="md-nav__link">
+    Mise en place d'un serveur Clonezilla via PXE
+  </a>
+  
+    <nav class="md-nav" aria-label="Mise en place d'un serveur Clonezilla via PXE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-requis-et-notions-preliminaires" class="md-nav__link">
+    Pré-requis et notions préliminaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-des-paquets-necessaires" class="md-nav__link">
+    Installation des paquets nécessaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-service-dhcp-sur-le-serveur" class="md-nav__link">
+    Configuration du service DHCP sur le serveur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-service-tftp-sur-le-serveur" class="md-nav__link">
+    Configuration du service TFTP sur le serveur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preparation-et-mise-en-place-de-limage-clonezilla" class="md-nav__link">
+    Préparation et mise en place de l'image Clonezilla
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-serveur-nfs" class="md-nav__link">
+    Configuration du serveur NFS
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration du serveur NFS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mise-en-place-des-exports-nfs" class="md-nav__link">
+    Mise en place des exports NFS
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mise-en-place-dune-image-de-boot" class="md-nav__link">
+    Mise en place d'une image de boot
+  </a>
+  
+    <nav class="md-nav" aria-label="Mise en place d'une image de boot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#copie-des-elements-necessaires" class="md-nav__link">
+    Copie des éléments nécessaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-du-service-pxe" class="md-nav__link">
+    Configuration du service PXE
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mise-en-place-du-dossier-et-fichier-menu-pxe" class="md-nav__link">
+    Mise en place du dossier et fichier menu PXE
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#specificites-de-clonezilla" class="md-nav__link">
+    Spécificités de Clonezilla
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utilisation-du-serveur" class="md-nav__link">
+    Utilisation du serveur
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+  <h1>Clonezilla PXE</h1>
+
+<h2 id="mise-en-place-dun-serveur-clonezilla-via-pxe">Mise en place d&rsquo;un serveur Clonezilla via PXE</h2>
+<h3 id="pre-requis-et-notions-preliminaires">Pré-requis et notions préliminaires</h3>
+<p>Le serveur PXE utilise Debian GNU/Linux en tant que système d&rsquo;exploitation.<br />
+Le serveur PXE (Preboot eXecution Environment, environnement de démarrage d&rsquo;ordinateurs en réseau) aura ici pour but de fournir aux postes clients connectés une image ISO bootable de Clonezilla en vue du déploiement d&rsquo;images openSUSE adaptées aux spécificités d&rsquo;Éveha.</p>
+<p>Des paquets doivent être installés, le serveur doit donc avoir une connexion Internet lors de sa mise en place.<br />
+Par la suite, le serveur peut n&rsquo;avoir qu&rsquo;une seule interface réseau configurée comme suit:</p>
+<div class="codehilite"><pre><span></span><code>adresse IP : 192.168.1.1
+netmask    : 255.255.255.0
+broadcast  : 192.168.1.255
+network    : 192.168.1.0 (réseau privée entre serveur et clients)
+gateway    : 192.168.1.1 (le serveur lui-même, aucune importance dans ce cadre)
+nameserver : 127.0.0.1   (le serveur lui-même, aucune importance dans ce cadre)
+</code></pre></div>
+
+<p>Le serveur va fournir un service DHCP au sein du réseau privé, il est donc important qu&rsquo;il ne soit pas relié au réseau extérieur afin d&rsquo;éviter tout conflit dans la fourniture du service DHCP.</p>
+<h3 id="installation-des-paquets-necessaires">Installation des paquets nécessaires</h3>
+<div class="codehilite"><pre><span></span><code>apt-get install isc-dhcp-server tftpd-hpa syslinux pxe nfs-kernel-server
+</code></pre></div>
+
+<h3 id="configuration-du-service-dhcp-sur-le-serveur">Configuration du service DHCP sur le serveur</h3>
+<p>Ce paquet fournit le daemon dhcpd et le service isc-dhcp-server.</p>
+<p>Il se configure via le fichier /etc/dhcp/dhcpd.conf, il faut ajouter ce qui suit:</p>
+<div class="codehilite"><pre><span></span><code><span class="err">#</span><span class="w"> </span><span class="nt">Début</span><span class="w"> </span><span class="nt">de</span><span class="w"> </span><span class="nt">configuration</span><span class="w"> </span><span class="nt">du</span><span class="w"> </span><span class="nt">service</span><span class="w"> </span><span class="nt">DHCP</span>
+<span class="err">#</span>
+<span class="err">#</span><span class="w"> </span><span class="nt">Déclaration</span><span class="w"> </span><span class="nt">des</span><span class="w"> </span><span class="nt">leases</span><span class="w"> </span><span class="nt">et</span><span class="w"> </span><span class="nt">plages</span><span class="w"> </span><span class="nt">de</span><span class="w"> </span><span class="nt">service</span><span class="w"> </span><span class="nt">du</span><span class="w"> </span><span class="nt">serveur</span><span class="w"> </span><span class="nt">PXE</span><span class="o">:</span>
+
+<span class="nt">subnet</span><span class="w"> </span><span class="nt">192</span><span class="p">.</span><span class="nc">168</span><span class="p">.</span><span class="nc">1</span><span class="p">.</span><span class="nc">0</span><span class="w"> </span><span class="nt">netmask</span><span class="w"> </span><span class="nt">255</span><span class="p">.</span><span class="nc">255</span><span class="p">.</span><span class="nc">255</span><span class="p">.</span><span class="nc">0</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="err">range</span><span class="w"> </span><span class="err">192.168.1.10</span><span class="w"> </span><span class="err">192.168.1.20</span><span class="p">;</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="err">à</span><span class="w"> </span><span class="err">adapter</span><span class="w"> </span><span class="err">aux</span><span class="w"> </span><span class="err">nombres</span><span class="w"> </span><span class="err">de</span><span class="w"> </span><span class="err">postes</span><span class="w"> </span><span class="err">clients</span>
+<span class="w">    </span><span class="err">option</span><span class="w"> </span><span class="err">broadcast-address</span><span class="w"> </span><span class="err">192.168.1.255</span><span class="p">;</span>
+<span class="w">    </span><span class="err">option</span><span class="w"> </span><span class="err">routers</span><span class="w"> </span><span class="err">192.168.1.1</span><span class="p">;</span><span class="w">      </span><span class="err">#</span><span class="w"> </span><span class="err">IP</span><span class="w"> </span><span class="err">du</span><span class="w"> </span><span class="err">serveur</span><span class="w"> </span><span class="err">PXE</span><span class="w"> </span><span class="err">si</span><span class="w"> </span><span class="err">on</span><span class="w"> </span><span class="err">veut</span><span class="w"> </span><span class="err">faire</span><span class="w"> </span><span class="err">du</span><span class="w"> </span><span class="err">routage</span>
+<span class="w">    </span><span class="err">option</span><span class="w"> </span><span class="err">domain-name-servers</span><span class="w"> </span><span class="err">192.168.1.1</span><span class="p">;</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="err">idem</span>
+<span class="w">    </span><span class="err">filename</span><span class="w"> </span><span class="err">&quot;pxelinux.0&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nt">group</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="err">next-server</span><span class="w"> </span><span class="err">192.168.1.1</span><span class="p">;</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="err">si</span><span class="w"> </span><span class="err">nécessaire</span>
+<span class="w">    </span><span class="err">host</span><span class="w"> </span><span class="err">tftpclient</span><span class="w"> </span><span class="err">{</span>
+<span class="w">        </span><span class="err">filename</span><span class="w"> </span><span class="err">&quot;pxelinux.0&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="err">}</span>
+
+<span class="err">#</span>
+<span class="err">#</span><span class="w"> </span><span class="nt">Fin</span><span class="w"> </span><span class="nt">de</span><span class="w"> </span><span class="nt">configuration</span><span class="w"> </span><span class="nt">du</span><span class="w"> </span><span class="nt">service</span><span class="w"> </span><span class="nt">DHCP</span>
+</code></pre></div>
+
+<p>Puis redémarrer le service:</p>
+<div class="codehilite"><pre><span></span><code>service isc-dhcp-server restart
+</code></pre></div>
+
+<p>Il est possible que l&rsquo;on obtienne un fail si aucun client n&rsquo;est connecté ou que la connexion est inactive.</p>
+<h3 id="configuration-du-service-tftp-sur-le-serveur">Configuration du service TFTP sur le serveur</h3>
+<p>Ce service se configure comme suit via le fichier /etc/default/tftpd-hpa:</p>
+<div class="codehilite"><pre><span></span><code># Début de configuration du service TFTP:
+#
+
+TFTP_USERNAME=&quot;tftp&quot;
+TFTP_DIRECTORY=&quot;/srv/tftp&quot;
+TFTP_ADDRESS=&quot;0.0.0.0:69&quot;
+TFTP_OPTIONS=&quot;--secure&quot;
+
+#
+# Fin de configuration du service TFTP
+</code></pre></div>
+
+<p>Puis redémarrer le service:</p>
+<div class="codehilite"><pre><span></span><code>service tftpd-hpa restart
+</code></pre></div>
+
+<p>Ceci peut échouer dans le cas où le dossier /srv/tftp/ n&rsquo;est pas présent (il est normalement créé automatiquement à l&rsquo;installation du paquet), il suffit alors de le créer.</p>
+<h3 id="preparation-et-mise-en-place-de-limage-clonezilla">Préparation et mise en place de l&rsquo;image Clonezilla</h3>
+<p>Télécharger une image .iso live de Clonezilla:</p>
+<div class="codehilite"><pre><span></span><code>wget http://heanet.dl.sourceforge.net/project/clonezilla/clonezilla_live_stable/2.2.3-25/clonezilla-live-2.2.3-25-amd64.iso
+</code></pre></div>
+
+<p>Monter l&rsquo;image dans /mnt:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">mount</span><span class="w"> </span><span class="o">-</span><span class="nv">o</span><span class="w"> </span><span class="k">loop</span><span class="w"> </span><span class="o">-</span><span class="nv">t</span><span class="w"> </span><span class="nv">iso9660</span><span class="w"> </span><span class="o">/</span><span class="nv">root</span><span class="o">/</span><span class="nv">clonezilla</span><span class="o">-</span><span class="nv">live</span><span class="o">-</span><span class="mi">2</span>.<span class="mi">2</span>.<span class="mi">3</span><span class="o">-</span><span class="mi">25</span><span class="o">-</span><span class="nv">amd64</span>.<span class="nv">iso</span><span class="w"> </span><span class="o">/</span><span class="nv">mnt</span>
+</code></pre></div>
+
+<p>Copier tous les fichiers dans le dossier réservé du serveur tftp:</p>
+<div class="codehilite"><pre><span></span><code>cp -ar /mnt/* /srv/tftp/clonezilla
+</code></pre></div>
+
+<h3 id="configuration-du-serveur-nfs">Configuration du serveur NFS</h3>
+<p>Les images des systèmes que nous souhaitons booter à distance vont être servis aux clients via un partage NFS.</p>
+<h4 id="mise-en-place-des-exports-nfs">Mise en place des exports NFS</h4>
+<p>Création du dossier contenant l&rsquo;image live de Clonezilla:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">mkdir</span><span class="w"> </span><span class="o">/</span><span class="n">srv</span><span class="o">/</span><span class="n">tftp</span><span class="o">/</span><span class="n">clonezilla</span>
+<span class="n">emacs</span><span class="w"> </span><span class="p">(</span><span class="n">ou</span><span class="w"> </span><span class="n">vi</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">exports</span>
+</code></pre></div>
+
+<p>et ajout des lignes correspondantes:</p>
+<div class="codehilite"><pre><span></span><code>/srv/tftp/clonezilla 192.168.1.0/24(async,no_root_squash,no_subtree_check,ro)
+</code></pre></div>
+
+<p>Note: l&rsquo;IP et le masque CIDR sont à adapter au réseau et l&rsquo;image doit être de préférence en read-only.</p>
+<p>Puis on active les partages NFS:</p>
+<div class="codehilite"><pre><span></span><code>service nfs-kernel-server restart
+</code></pre></div>
+
+<p>Et on les vérifie:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">exportfs</span><span class="w"> </span><span class="o">-</span><span class="n">v</span>
+</code></pre></div>
+
+<p>Cette commande doit renvoyer la liste des partages actifs.</p>
+<h3 id="mise-en-place-dune-image-de-boot">Mise en place d&rsquo;une image de boot</h3>
+<p>Le paquet syslinux fournit une collection de bootloader dont certains nous seront nécessaires pour démarrer en PXE et afficher le menu qui va bien.</p>
+<h4 id="copie-des-elements-necessaires">Copie des éléments nécessaires</h4>
+<div class="codehilite"><pre><span></span><code>cd /usr/lib/syslinux
+cp chain.c32 mboot.c32 menu.c32 pxelinux.0 reboot.c32 vesamenu.c32 -t /srv/tftp/
+</code></pre></div>
+
+<h4 id="configuration-du-service-pxe">Configuration du service PXE</h4>
+<div class="codehilite"><pre><span></span><code>emacs (ou vi) /etc/pxe.conf
+
+# Début de configuration du service PXE:
+# 
+# which interface to use:
+interface=eth0
+default_address=192.168.1.1
+
+# tftpd base dir:
+tftpdbase=/srv/tftp
+
+# domain name:
+domain=domain.fr
+#
+# Fin de configuration du service PXE
+</code></pre></div>
+
+<h4 id="mise-en-place-du-dossier-et-fichier-menu-pxe">Mise en place du dossier et fichier menu PXE</h4>
+<div class="codehilite"><pre><span></span><code>mkdir /srv/tftp/pxelinux.cfg
+emacs (ou vi) /srv/tftp/pxelinux.cfg/default
+</code></pre></div>
+
+<p>Ce fichier va contenir les instructions pour le menu de boot via PXE</p>
+<div class="codehilite"><pre><span></span><code><span class="o">#</span> <span class="n">Début</span> <span class="n">de</span> <span class="n">configuration</span> <span class="n">du</span> <span class="n">menu</span> <span class="n">PXE</span><span class="p">:</span>
+<span class="o">#</span>
+
+<span class="o">#</span> <span class="n">Interface</span> <span class="n">visuelle</span><span class="p">:</span>
+<span class="n">DEFAULT</span> <span class="n">vesamenu</span><span class="p">.</span><span class="n">c32</span>
+<span class="n">MENU</span> <span class="n">TITLE</span> <span class="n">Bienvenue</span> <span class="n">sur</span> <span class="n">le</span> <span class="n">serveur</span> <span class="n">Clonezilla</span>
+<span class="n">prompt</span> <span class="mi">0</span>
+<span class="n">kbdmap</span> <span class="n">french</span><span class="p">.</span><span class="n">kbd</span>
+
+<span class="o">#</span> <span class="n">Entrée</span> <span class="n">du</span> <span class="n">menu</span> <span class="n">Clonezilla</span>
+<span class="n">LABEL</span> <span class="n">Demarrer</span> <span class="n">Clonezilla</span>
+    <span class="n">KERNEL</span> <span class="n">clonezilla</span><span class="o">/</span><span class="n">live</span><span class="o">/</span><span class="n">vmlinuz</span>
+    <span class="n">APPEND</span> <span class="n">boot</span><span class="o">=</span><span class="n">live</span> <span class="n">rootfstype</span><span class="o">=</span><span class="n">nfs</span> <span class="n">netboot</span><span class="o">=</span><span class="n">nfs</span> <span class="n">nfsroot</span><span class="o">=</span><span class="mf">192.168</span><span class="p">.</span><span class="mf">1.1</span><span class="p">:</span><span class="o">/</span><span class="n">srv</span><span class="o">/</span><span class="n">tftp</span><span class="o">/</span><span class="n">clonezilla</span> <span class="n">initrd</span><span class="o">=</span><span class="n">clonezilla</span><span class="o">/</span><span class="n">live</span><span class="o">/</span><span class="n">initrd</span><span class="p">.</span><span class="n">img</span> <span class="n">config</span> <span class="o">--</span>
+
+<span class="o">#</span> <span class="n">Entrée</span> <span class="n">du</span> <span class="n">menu</span> <span class="n">de</span> <span class="n">redémarrage</span>
+<span class="n">LABEL</span> <span class="n">Reboot</span>
+    <span class="n">MENU</span> <span class="n">LABEL</span> <span class="n">Redemarrer</span>
+    <span class="n">KERNEL</span> <span class="n">reboot</span><span class="p">.</span><span class="n">c32</span>
+
+<span class="o">#</span>
+<span class="o">#</span> <span class="n">Fin</span> <span class="n">de</span> <span class="n">configuration</span> <span class="n">du</span> <span class="n">menu</span> <span class="n">PXE</span>
+</code></pre></div>
+
+<p>Un chmod -R 775 dans ce même dossier peut être nécessaire pour que le daemon TFTPD puisse les lire.</p>
+<h3 id="specificites-de-clonezilla">Spécificités de Clonezilla</h3>
+<p>L&rsquo;idée étant de booter sur un live Clonezilla pour créer et déployer des images disques, nous allons adapter notre environnement à ce but:</p>
+<p>(/partimag est le dossier par défaut de Clonezilla, on peut mettre autre chose mais cela implique de le spécifier manuellement à chaque clonage/copie.)</p>
+<p>Ces images vont transiter par un partage NFS sur un NAS:</p>
+<div class="codehilite"><pre><span></span><code>IP du NAS: 192.168.87.21
+Nom du NAS: nfsclone
+Version de NFS: NFSv4
+Emplacement du dossier partagé: /volume1/partimag
+</code></pre></div>
+
+<h3 id="utilisation-du-serveur">Utilisation du serveur</h3>
+<p>Il ne reste plus qu&rsquo;à connecter les clients, les démarrer via PXE, sélectionner l&rsquo;entrée de menu &lsquo;Clonezilla&rsquo;.<br />
+Le reste est une utilisation classique de Clonezilla à ceci près que les images vont être écrites/lues vers/depuis un partage NFS.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a00a7c5e.min.js"></script>
+      
+    
+  </body>
+</html>

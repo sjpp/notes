@@ -1,0 +1,3178 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Random bunch of technical notes and various tips">
+      
+      
+      
+        <link rel="canonical" href="https://sjpp.github.io/notes/SQL/MySQL/">
+      
+      
+        <link rel="prev" href="../../Podman/Tips/">
+      
+      
+        <link rel="next" href="../PostgreSQL/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.8">
+    
+    
+      
+        <title>MySQL - Technical notes</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0d440cfe.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mysql-and-mariadb-tricks" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Technical notes" class="md-header__button md-logo" aria-label="Technical notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Technical notes
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MySQL
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sjpp/notes" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Gitea
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Technical notes" class="md-nav__button md-logo" aria-label="Technical notes" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Technical notes
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sjpp/notes" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Gitea
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Cuisine
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Cuisine
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Cuisine/marinade/" class="md-nav__link">
+        Marinade soja pour tofu
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Cuisine/pois_chiche/" class="md-nav__link">
+        Attention au bicabornate
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Cuisine/sarrasin/" class="md-nav__link">
+        Comment cuire le sarrasin.
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Desktop
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Desktop
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Desktop/Manage_Dotfiles_with_Git/" class="md-nav__link">
+        Manage Dotfiles with Git
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Desktop/Pulseaudio%26Bluetooth/" class="md-nav__link">
+        Pulseaudio&Bluetooth
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Desktop/Sync_Github_fork/" class="md-nav__link">
+        Syncing a Github fork
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Divers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Divers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Divers/mkdocs/" class="md-nav__link">
+        MkDocs
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Docker
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Docker
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/Container_backup/" class="md-nav__link">
+        Container backup
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/Databases_backup/" class="md-nav__link">
+        Databases backup
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/General_use/" class="md-nav__link">
+        General use
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Docker/Tips/" class="md-nav__link">
+        General Docker Tips and issues solutions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Filesystems
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Filesystems
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/Filesystems_tricks/" class="md-nav__link">
+        Filesystems tricks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/GlusterFS/" class="md-nav__link">
+        GlusterFS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/LUKS/" class="md-nav__link">
+        LUKS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/LVM/" class="md-nav__link">
+        LVM
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/RAID_Rebuild/" class="md-nav__link">
+        RAID Rebuild
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/RAID_Resize/" class="md-nav__link">
+        RAID Resize
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/ZFS/" class="md-nav__link">
+        ZFS
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Filesystems/sfdisk_usage/" class="md-nav__link">
+        Sfdisk usage
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          GitLab
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          GitLab
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GitLab/local_s3_cache/" class="md-nav__link">
+        Create a local bucket for runners' cache
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GitLab/registry_clean/" class="md-nav__link">
+        Registry Management
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          LDAP
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          LDAP
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/ACL/" class="md-nav__link">
+        LDAP ACL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/ConfigAdmin/" class="md-nav__link">
+        Setup Config Admin
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/LDAP_tunning/" class="md-nav__link">
+        LDAP tunning
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/Monitoring_LDAP/" class="md-nav__link">
+        Monitoring LDAP
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/Recover_admin_password/" class="md-nav__link">
+        Recover admin password lost
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LDAP/Reset_slave_state/" class="md-nav__link">
+        Reset slave state
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          Linux
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_9">
+          <span class="md-nav__icon md-icon"></span>
+          Linux
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Bluetooth/" class="md-nav__link">
+        Bluetooth
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Busybox/" class="md-nav__link">
+        Busybox
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Copy_sparse_files/" class="md-nav__link">
+        Copier un fichier sparse sur le réseau
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Create_floppy_disk/" class="md-nav__link">
+        Create floppy disk
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Create_img_disk/" class="md-nav__link">
+        Create img disk
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Create_iso_file/" class="md-nav__link">
+        Create iso file
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Curl/" class="md-nav__link">
+        Curl
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Encrypt_files/" class="md-nav__link">
+        Encrypt files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Entropy/" class="md-nav__link">
+        Manage Linux entropy
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/GPG/" class="md-nav__link">
+        GPG
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Get_file_creation_time/" class="md-nav__link">
+        Get file creation time
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Get_process_info/" class="md-nav__link">
+        Get process info
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Git/" class="md-nav__link">
+        Git
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Grep_regex/" class="md-nav__link">
+        Grep
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/MPD/" class="md-nav__link">
+        MPD
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Memo/" class="md-nav__link">
+        Memo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/RSyslog/" class="md-nav__link">
+        RSyslog
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Repair_broken_GRUB/" class="md-nav__link">
+        Repair broken GRUB
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/SELinux/" class="md-nav__link">
+        SELinux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/SSH/" class="md-nav__link">
+        SSH
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Sed/" class="md-nav__link">
+        Sed
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Set_Kernel_in_Grub/" class="md-nav__link">
+        Set Kernel version in Grub
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Tmpfs/" class="md-nav__link">
+        Add userland tmpfs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Tmux/" class="md-nav__link">
+        Tmux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Vim/" class="md-nav__link">
+        Vim
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/openSSL/" class="md-nav__link">
+        openSSL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_27" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_27" id="__nav_9_27_label" tabindex="0">
+          Cockpit
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_27_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_9_27">
+          <span class="md-nav__icon md-icon"></span>
+          Cockpit
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Cockpit/auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Linux/Cockpit/cockpit/" class="md-nav__link">
+        Cockpit
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+          Mail
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_10">
+          <span class="md-nav__icon md-icon"></span>
+          Mail
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Mail/Postfix/" class="md-nav__link">
+        Postfix
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Mail/Telnet/" class="md-nav__link">
+        Use Telnet to send mail
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+          Network
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_11">
+          <span class="md-nav__icon md-icon"></span>
+          Network
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/App_jail/" class="md-nav__link">
+        App jail
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Carp/" class="md-nav__link">
+        CARP (openBSD)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/FirewallD/" class="md-nav__link">
+        FirewallD
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Keepalived/" class="md-nav__link">
+        Set up Keepalived VIP on RockyLinux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/NetworkManager/" class="md-nav__link">
+        Start shell script on Network Manager successful connection
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Network_Diag/" class="md-nav__link">
+        Network Diag
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/TCPdump/" class="md-nav__link">
+        TCPdump
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Network/Trafic_error/" class="md-nav__link">
+        Trafi error
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+          OS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12">
+          <span class="md-nav__icon md-icon"></span>
+          OS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/Clonezilla_PXE/" class="md-nav__link">
+        Clonezilla PXE
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/openSUSE_memo/" class="md-nav__link">
+        openSUSE memo
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_3" id="__nav_12_3_label" tabindex="0">
+          CentOS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_3">
+          <span class="md-nav__icon md-icon"></span>
+          CentOS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/CentOS/Apache_SeLinux/" class="md-nav__link">
+        Apache SeLinux
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/CentOS/Colorful_root_prompt/" class="md-nav__link">
+        Colorized prompt for root
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/CentOS/vimrc/" class="md-nav__link">
+        Vimrc
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_4" id="__nav_12_4_label" tabindex="0">
+          Centreon
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_4">
+          <span class="md-nav__icon md-icon"></span>
+          Centreon
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/Centreon/SNMP_Config/" class="md-nav__link">
+        Centreon
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_5" id="__nav_12_5_label" tabindex="0">
+          Debian
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_5">
+          <span class="md-nav__icon md-icon"></span>
+          Debian
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/Debian/Custom_image/" class="md-nav__link">
+        Custom image
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/Debian/Tricks/" class="md-nav__link">
+        Tricks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/Debian/apt_conf/" class="md-nav__link">
+        Configuration APT
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_12_6" id="__nav_12_6_label" tabindex="0">
+          Fedora
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_12_6">
+          <span class="md-nav__icon md-icon"></span>
+          Fedora
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../OS/Fedora/Manage_repositories/" class="md-nav__link">
+        Manage repositories
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
+          PAM SSSD
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_13">
+          <span class="md-nav__icon md-icon"></span>
+          PAM SSSD
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAM_SSSD/Disable_fprintd/" class="md-nav__link">
+        Disable fprintd
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAM_SSSD/polkit/" class="md-nav__link">
+        Autoriser Polkit Pam avec SSSD
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
+          Podman
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_14">
+          <span class="md-nav__icon md-icon"></span>
+          Podman
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Podman/Pods/" class="md-nav__link">
+        Create pods with Podman
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Podman/Tips/" class="md-nav__link">
+        Tips and tricks about Podman
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
+          SQL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_15">
+          <span class="md-nav__icon md-icon"></span>
+          SQL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          MySQL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        MySQL
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mysql-and-mariadb-tricks" class="md-nav__link">
+    MySQL and MariaDB tricks
+  </a>
+  
+    <nav class="md-nav" aria-label="MySQL and MariaDB tricks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dumper-une-table" class="md-nav__link">
+    Dumper une table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restaurer-le-dump-dune-table" class="md-nav__link">
+    Restaurer le dump d'une table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extraire-table-dun-dump" class="md-nav__link">
+    Extraire table d'un dump
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-the-table-from-the-mysql-database-dump-file" class="md-nav__link">
+    extract the table from the MySQL database dump file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-last-remaining-step-is-to-use-the-extracted-table" class="md-nav__link">
+    The last remaining step is to use the extracted table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gerer-les-bases-de-donnees" class="md-nav__link">
+    Gérer les bases de données
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gestion-des-utilisateurs" class="md-nav__link">
+    Gestion des utilisateurs
+  </a>
+  
+    <nav class="md-nav" aria-label="Gestion des utilisateurs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pour-creer-un-utilisateur" class="md-nav__link">
+    Pour créer un utilisateur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attribuer-des-droits-aux-utilisateurs" class="md-nav__link">
+    Attribuer des droits aux utilisateurs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changer-un-mot-de-passe-dutilisateur-de-mysql" class="md-nav__link">
+    Changer un mot de passe d'utilisateur de MySQL
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modifier-mot-de-passe-hasher-en-md5" class="md-nav__link">
+    Modifier mot de passe hasher en MD5
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    Tables
+  </a>
+  
+    <nav class="md-nav" aria-label="Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pour-creer-une-table-simple-voici-un-exemple" class="md-nav__link">
+    Pour créer une table simple, voici un exemple
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-back-up-and-restore-a-mysql-database" class="md-nav__link">
+    How to Back Up and Restore a MySQL Database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#back-up-your-mysql-database-with-compress" class="md-nav__link">
+    Back up your MySQL Database with Compress
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restoring-your-mysql-database" class="md-nav__link">
+    Restoring your MySQL Database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backing-up-and-restoring-using-phpmyadmin" class="md-nav__link">
+    Backing Up and Restoring using PHPMyAdmin
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restoring-your-database-is-easy-as-well-as-backing-it-up-make-the-following" class="md-nav__link">
+    Restoring your database is easy as well as backing it up. Make the following:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#script-creation-multiple" class="md-nav__link">
+    Script création multiple
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mettre-a-jour-le-pass-dun-user" class="md-nav__link">
+    Mettre à jour le pass d'un user
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purger-les-logs-binaires" class="md-nav__link">
+    Purger les logs binaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gerer-les-processus" class="md-nav__link">
+    Gérer les processus
+  </a>
+  
+    <nav class="md-nav" aria-label="Gérer les processus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tuer-un-process" class="md-nav__link">
+    Tuer un process
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tuer-plein-de-process" class="md-nav__link">
+    Tuer plein de process
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#afficher-les-entetes-des-colonnes-dune-table" class="md-nav__link">
+    Afficher les entetes des colonnes d'une table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#voir-les-moteurs-de-table" class="md-nav__link">
+    Voir les moteurs de table
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PostgreSQL/" class="md-nav__link">
+        PostgreSQL
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_16" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_16" id="__nav_16_label" tabindex="0">
+          Systemd
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_16_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_16">
+          <span class="md-nav__icon md-icon"></span>
+          Systemd
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Systemd/Mount_Shares/" class="md-nav__link">
+        Mount via Systemd Units
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_17" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_17" id="__nav_17_label" tabindex="0">
+          Virt
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_17_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_17">
+          <span class="md-nav__icon md-icon"></span>
+          Virt
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Libvirt_cert/" class="md-nav__link">
+        How to generate and use a cert for Libvirt
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Qemu_mount_image/" class="md-nav__link">
+        Mounting a QEMU Image
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Sparse_file_copy/" class="md-nav__link">
+        Copier un fichier sparse sur le réseau
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Virt/Virt-Manager/" class="md-nav__link">
+        Virt Manager
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_18" id="__nav_18_label" tabindex="0">
+          Web
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_18_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_18">
+          <span class="md-nav__icon md-icon"></span>
+          Web
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Nginx/" class="md-nav__link">
+        Nginx
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_18_2" id="__nav_18_2_label" tabindex="0">
+          Apache
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_18_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_18_2">
+          <span class="md-nav__icon md-icon"></span>
+          Apache
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Apache/LetsEncrypt/" class="md-nav__link">
+        LetsEncrypt
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Apache/Mapping/" class="md-nav__link">
+        Create an redirection mapping
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/Apache/Redirection/" class="md-nav__link">
+        Redirections Apache
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_18_3" id="__nav_18_3_label" tabindex="0">
+          HAProxy
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_18_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_18_3">
+          <span class="md-nav__icon md-icon"></span>
+          HAProxy
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/HAProxy/Keepalived_VRRP_Config/" class="md-nav__link">
+        Keepalived VRRP Config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Web/HAProxy/LDAP_configuration/" class="md-nav__link">
+        LDAP configuration
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mysql-and-mariadb-tricks" class="md-nav__link">
+    MySQL and MariaDB tricks
+  </a>
+  
+    <nav class="md-nav" aria-label="MySQL and MariaDB tricks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dumper-une-table" class="md-nav__link">
+    Dumper une table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restaurer-le-dump-dune-table" class="md-nav__link">
+    Restaurer le dump d'une table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extraire-table-dun-dump" class="md-nav__link">
+    Extraire table d'un dump
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-the-table-from-the-mysql-database-dump-file" class="md-nav__link">
+    extract the table from the MySQL database dump file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-last-remaining-step-is-to-use-the-extracted-table" class="md-nav__link">
+    The last remaining step is to use the extracted table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gerer-les-bases-de-donnees" class="md-nav__link">
+    Gérer les bases de données
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gestion-des-utilisateurs" class="md-nav__link">
+    Gestion des utilisateurs
+  </a>
+  
+    <nav class="md-nav" aria-label="Gestion des utilisateurs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pour-creer-un-utilisateur" class="md-nav__link">
+    Pour créer un utilisateur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attribuer-des-droits-aux-utilisateurs" class="md-nav__link">
+    Attribuer des droits aux utilisateurs
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changer-un-mot-de-passe-dutilisateur-de-mysql" class="md-nav__link">
+    Changer un mot de passe d'utilisateur de MySQL
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modifier-mot-de-passe-hasher-en-md5" class="md-nav__link">
+    Modifier mot de passe hasher en MD5
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    Tables
+  </a>
+  
+    <nav class="md-nav" aria-label="Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pour-creer-une-table-simple-voici-un-exemple" class="md-nav__link">
+    Pour créer une table simple, voici un exemple
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-back-up-and-restore-a-mysql-database" class="md-nav__link">
+    How to Back Up and Restore a MySQL Database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#back-up-your-mysql-database-with-compress" class="md-nav__link">
+    Back up your MySQL Database with Compress
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restoring-your-mysql-database" class="md-nav__link">
+    Restoring your MySQL Database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backing-up-and-restoring-using-phpmyadmin" class="md-nav__link">
+    Backing Up and Restoring using PHPMyAdmin
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restoring-your-database-is-easy-as-well-as-backing-it-up-make-the-following" class="md-nav__link">
+    Restoring your database is easy as well as backing it up. Make the following:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#script-creation-multiple" class="md-nav__link">
+    Script création multiple
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mettre-a-jour-le-pass-dun-user" class="md-nav__link">
+    Mettre à jour le pass d'un user
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purger-les-logs-binaires" class="md-nav__link">
+    Purger les logs binaires
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gerer-les-processus" class="md-nav__link">
+    Gérer les processus
+  </a>
+  
+    <nav class="md-nav" aria-label="Gérer les processus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tuer-un-process" class="md-nav__link">
+    Tuer un process
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tuer-plein-de-process" class="md-nav__link">
+    Tuer plein de process
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#afficher-les-entetes-des-colonnes-dune-table" class="md-nav__link">
+    Afficher les entetes des colonnes d'une table
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#voir-les-moteurs-de-table" class="md-nav__link">
+    Voir les moteurs de table
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+  <h1>MySQL</h1>
+
+<h2 id="mysql-and-mariadb-tricks">MySQL and MariaDB tricks</h2>
+<h3 id="dumper-une-table">Dumper une table</h3>
+<div class="codehilite"><pre><span></span><code>    mysqldump $base $table
+</code></pre></div>
+
+<h3 id="restaurer-le-dump-dune-table">Restaurer le dump d&rsquo;une table</h3>
+<div class="codehilite"><pre><span></span><code>    mysql -uroot -p DatabaseName &lt; path\TableName.sql
+</code></pre></div>
+
+<h3 id="extraire-table-dun-dump">Extraire table d&rsquo;un dump</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">grep</span><span class="w"> </span><span class="o">-</span><span class="n">n</span><span class="w"> </span><span class="ss">&quot;Table structure&quot;</span><span class="w"> </span><span class="o">[</span><span class="n">MySQL_dump_filename</span><span class="o">]</span><span class="p">.</span><span class="k">sql</span>
+</code></pre></div>
+
+<p>This will provide you with the starting line number in the MySQL dump file which defines each table. Using this, determine the starting and ending line numbers of the table you need (the ending line number will be the starting line number of the next table, minus one).</p>
+<h3 id="extract-the-table-from-the-mysql-database-dump-file">extract the table from the MySQL database dump file</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">sed</span><span class="w"> </span><span class="o">-</span><span class="n">n</span><span class="w"> </span><span class="s1">&#39;[starting_line_number],[ending_line_number] p&#39;</span><span class="w"> </span><span class="o">[</span><span class="n">MySQL_dump_filename</span><span class="o">]</span><span class="p">.</span><span class="k">sql</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">table_output_filename</span><span class="o">]</span><span class="p">.</span><span class="k">sql</span>
+</code></pre></div>
+
+<h3 id="the-last-remaining-step-is-to-use-the-extracted-table">The last remaining step is to use the extracted table</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">mysql</span><span class="w"> </span><span class="o">-</span><span class="n">u</span><span class="w"> </span><span class="n">root</span><span class="w"> </span><span class="o">-</span><span class="n">p</span><span class="w"> </span><span class="o">[</span><span class="n">some_database_name</span><span class="o">]</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="o">[</span><span class="n">table_output_filename</span><span class="o">]</span><span class="p">.</span><span class="k">sql</span>
+</code></pre></div>
+
+<h3 id="gerer-les-bases-de-donnees">Gérer les bases de données</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">show</span><span class="w"> </span><span class="nv">databases</span><span class="c1">;</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p>Utiliser une base</p>
+<div class="codehilite"><pre><span></span><code>USE nom_base;
+</code></pre></div>
+
+</li>
+<li>
+<p>Listes les tables dans cette base</p>
+<div class="codehilite"><pre><span></span><code><span class="k">show</span><span class="w"> </span><span class="nv">tables</span><span class="c1">;</span>
+</code></pre></div>
+
+</li>
+<li>
+<p>Pour crée une base de données, saisir simplement</p>
+<div class="codehilite"><pre><span></span><code>CREATE DATABASE superbase;
+</code></pre></div>
+
+</li>
+<li>
+<p>Pour la supprimer</p>
+<div class="codehilite"><pre><span></span><code>DROP DATABASE superbase;
+</code></pre></div>
+
+</li>
+</ul>
+<h3 id="gestion-des-utilisateurs">Gestion des utilisateurs</h3>
+<ul>
+<li>Voir tous les utilisateurs<div class="codehilite"><pre><span></span><code>select * from mysql.user;
+</code></pre></div>
+
+</li>
+</ul>
+<h4 id="pour-creer-un-utilisateur">Pour créer un utilisateur</h4>
+<ul>
+<li>
+<p>Quelque soit l&rsquo;hôte</p>
+<div class="codehilite"><pre><span></span><code>CREATE USER &#39;utilisateur&#39;@&#39;%&#39; IDENTIFIED BY &#39;motdepasse&#39;;
+</code></pre></div>
+
+</li>
+<li>
+<p>Que pour localhost</p>
+<div class="codehilite"><pre><span></span><code>CREATE USER &#39;utilisateur&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;motdepasse&#39;;
+</code></pre></div>
+
+</li>
+</ul>
+<h4 id="attribuer-des-droits-aux-utilisateurs">Attribuer des droits aux utilisateurs</h4>
+<p>Pour attribuer tous les droits à un utilisateur (en faire en quelque sortes un deuxième root) :</p>
+<div class="codehilite"><pre><span></span><code>    GRANT ALL PRIVILEGES ON * . * TO &#39;utilisateur&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;motdepasse&#39; WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0 ;
+</code></pre></div>
+
+<ul>
+<li>
+<p>Ou même en lecture seule</p>
+<div class="codehilite"><pre><span></span><code>GRANT SELECT ON * . * TO &#39;utilisateur&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;motdepasse&#39; ;
+</code></pre></div>
+
+</li>
+<li>
+<p>Tous les droits sur une base</p>
+<div class="codehilite"><pre><span></span><code>GRANT ALL PRIVILEGES ON mydb.* TO &#39;myuser&#39;@&#39;localhost&#39; WITH GRANT OPTION;
+</code></pre></div>
+
+</li>
+<li>
+<p>On peut faire du 2 en 1. Voici un exemple pour la création d&rsquo;un utilisateur sans mot de passe avec des droits en lecture seule</p>
+<div class="codehilite"><pre><span></span><code>GRANT SELECT ON *.* TO &#39;ro&#39;@&#39;localhost&#39;;
+</code></pre></div>
+
+</li>
+<li>
+<p>De la même façon, on peut supprimer ds droits avec REVOKE</p>
+<div class="codehilite"><pre><span></span><code>REVOKE ALL ON *.* FROM &#39;utilisateur&#39;@&#39;localhost&#39;;
+</code></pre></div>
+
+</li>
+</ul>
+<h3 id="changer-un-mot-de-passe-dutilisateur-de-mysql">Changer un mot de passe d&rsquo;utilisateur de MySQL</h3>
+<ul>
+<li>
+<p>Cette commande fonctionne uniquement pour MySQL</p>
+<div class="codehilite"><pre><span></span><code>UPDATE mysql.USER SET password=PASSWORD(&quot;nouveau&quot;) WHERE USER=&quot;utilisateur&quot;;
+</code></pre></div>
+
+</li>
+<li>
+<p>Pour voir les utilisateurs créés</p>
+<div class="codehilite"><pre><span></span><code>SELECT USER,host,password FROM mysql.USER;
+</code></pre></div>
+
+</li>
+<li>
+<p>Pour un utilisateur donné, on peut voir ses droits de la façon suivante</p>
+<div class="codehilite"><pre><span></span><code><span class="n">SHOW</span><span class="w"> </span><span class="n">GRANTS</span><span class="w"> </span><span class="n">FOR</span><span class="w"> </span><span class="s">&quot;utilisateur&quot;@&quot;localhost&quot;</span><span class="p">;</span>
+</code></pre></div>
+
+</li>
+<li>
+<p>View permissions for individual databases</p>
+<div class="codehilite"><pre><span></span><code>SELECT user, host, db, select_priv, insert_priv, grant_priv FROM mysql.db;
+</code></pre></div>
+
+</li>
+<li>
+<p>Voir les GRANTS sur une table:</p>
+<div class="codehilite"><pre><span></span><code>select user from mysql.db where db=&#39;DB_NAME&#39;;
+</code></pre></div>
+
+</li>
+</ul>
+<h3 id="modifier-mot-de-passe-hasher-en-md5">Modifier mot de passe hasher en MD5</h3>
+<div class="codehilite"><pre><span></span><code>    UPDATE users SET Password = (MD5(&#39;1cb826899b7&#39;)) WHERE User = &#39;sgennet&#39;;
+</code></pre></div>
+
+<h3 id="tables">Tables</h3>
+<h4 id="pour-creer-une-table-simple-voici-un-exemple">Pour créer une table simple, voici un exemple</h4>
+<div class="codehilite"><pre><span></span><code>    CREATE TABLE table1 ( id INT(10) NOT NULL AUTO_INCREMENT COMMENT &#39;id, autoincrémenté&#39;, nom VARCHAR(20) NOT NULL, DATE DATE, message VARCHAR(255), PRIMARY KEY (id));
+</code></pre></div>
+
+<h3 id="how-to-back-up-and-restore-a-mysql-database">How to Back Up and Restore a MySQL Database</h3>
+<p>If you&rsquo;re storing anything in MySQL databases that you do not want to lose, it is very important to make regular backups of your data to protect it from loss. This tutorial will show you two easy ways to backup and restore the data in your MySQL database. You can also use this process to move your data to a new web server.</p>
+<p>Back up From the Command Line (using mysqldump)</p>
+<p>If you have shell or telnet access to your web server, you can backup your MySQL data by using the mysqldump command. This command connects to the MySQL server and creates an SQL dump file. The dump file contains the SQL statements necessary to re-create the database. Here is the proper syntax:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">mysqldump</span><span class="w"> </span><span class="c1">--opt -u [uname] -p[pass] [dbname] &gt; [backupfile.sql]</span>
+</code></pre></div>
+
+<p>For example, to backup a database named &lsquo;Tutorials&rsquo; with the username &lsquo;root&rsquo; and with no password to a file tut_backup.sql, you should accomplish this command:</p>
+<div class="codehilite"><pre><span></span><code>mysqldump -u root -p Tutorials &gt; tut_backup.sql
+</code></pre></div>
+
+<p>This command will backup the &lsquo;Tutorials&rsquo; database into a file called tut_backup.sql which will contain all the SQL statements needed to re-create the database.</p>
+<p>With mysqldump command you can specify certain tables of your database you want to backup. For example, to back up only php_tutorials and asp_tutorials tables from the &lsquo;Tutorials&rsquo; database accomplish the command below. Each table name has to be separated by space.</p>
+<div class="codehilite"><pre><span></span><code>mysqldump -u root -p Tutorials php_tutorials asp_tutorials &gt; tut_backup.sql
+</code></pre></div>
+
+<p>Sometimes it is necessary to back up more that one database at once. In this case you can use the &ndash;database option followed by the list of databases you would like to backup. Each database name has to be separated by space.</p>
+<div class="codehilite"><pre><span></span><code>mysqldump -u root -p --databases Tutorials Articles Comments &gt; content_backup.sql
+</code></pre></div>
+
+<p>If you want to back up all the databases in the server at one time you should use the &ndash;all-databases option. It tells MySQL to dump all the databases it has in storage.</p>
+<div class="codehilite"><pre><span></span><code>mysqldump -u root -p --all-databases &gt; alldb_backup.sql
+</code></pre></div>
+
+<p>The mysqldump command has also some other useful options:</p>
+<div class="codehilite"><pre><span></span><code>--add-drop-table: Tells MySQL to add a DROP TABLE statement before each CREATE TABLE in the dump.
+
+--no-data: Dumps only the database structure, not the contents.
+
+--add-locks: Adds the LOCK TABLES and UNLOCK TABLES statements you can see in the dump file.
+</code></pre></div>
+
+<p>The mysqldump command has advantages and disadvantages. The advantages of using mysqldump are that it is simple to use and it takes care of table locking issues for you. The disadvantage is that the command locks tables. If the size of your tables is very big mysqldump can lock out users for a long period of time.</p>
+<h3 id="back-up-your-mysql-database-with-compress">Back up your MySQL Database with Compress</h3>
+<p>If your mysql database is very big, you might want to compress the output of mysqldump. Just use the mysql backup command below and pipe the output to gzip, then you will get the output as gzip file.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">mysqldump</span><span class="w"> </span><span class="o">-</span><span class="n">u</span><span class="w"> </span><span class="o">[</span><span class="n">uname</span><span class="o">]</span><span class="w"> </span><span class="o">-</span><span class="n">p</span><span class="o">[</span><span class="n">pass</span><span class="o">]</span><span class="w"> </span><span class="o">[</span><span class="n">dbname</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">gzip</span><span class="w"> </span><span class="o">-</span><span class="mi">9</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">backupfile.sql.gz</span><span class="o">]</span>
+</code></pre></div>
+
+<p>If you want to extract the .gz file, use the command below:</p>
+<div class="codehilite"><pre><span></span><code>gunzip [backupfile.sql.gz]
+</code></pre></div>
+
+<h3 id="restoring-your-mysql-database">Restoring your MySQL Database</h3>
+<p>Above we backup the Tutorials database into tut_backup.sql file. To re-create the Tutorials database you should follow two steps:</p>
+<ul>
+<li>Create an appropriately named database on the target machine</li>
+<li>
+<p>Load the file using the mysql command:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">mysql</span><span class="w"> </span><span class="o">-</span><span class="n">u</span><span class="w"> </span><span class="o">[</span><span class="n">uname</span><span class="o">]</span><span class="w"> </span><span class="o">-</span><span class="n">p</span><span class="o">[</span><span class="n">pass</span><span class="o">]</span><span class="w"> </span><span class="o">[</span><span class="n">db_to_restore</span><span class="o">]</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="o">[</span><span class="n">backupfile.sql</span><span class="o">]</span>
+</code></pre></div>
+
+</li>
+<li>
+<p>Have a look how you can restore your tut_backup.sql file to the Tutorials database.</p>
+<div class="codehilite"><pre><span></span><code>mysql -u root -p Tutorials &lt; tut_backup.sql
+</code></pre></div>
+
+</li>
+<li>
+<p>To restore compressed backup files you can do the following:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">gunzip</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="o">[</span><span class="n">backupfile.sql.gz</span><span class="o">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">mysql</span><span class="w"> </span><span class="o">-</span><span class="n">u</span><span class="w"> </span><span class="o">[</span><span class="n">uname</span><span class="o">]</span><span class="w"> </span><span class="o">-</span><span class="n">p</span><span class="o">[</span><span class="n">pass</span><span class="o">]</span><span class="w"> </span><span class="o">[</span><span class="n">dbname</span><span class="o">]</span>
+</code></pre></div>
+
+</li>
+</ul>
+<p>If you need to restore a database that already exists, you&rsquo;ll need to use mysqlimport command. The syntax for mysqlimport is as follows:</p>
+<div class="codehilite"><pre><span></span><code>    <span class="n">mysqlimport</span> <span class="o">-</span><span class="n">u</span> <span class="p">[</span><span class="n">uname</span><span class="p">]</span> <span class="o">-</span><span class="n">p</span><span class="p">[</span><span class="k">pass</span><span class="p">]</span> <span class="p">[</span><span class="n">dbname</span><span class="p">]</span> <span class="p">[</span><span class="n">backupfile</span><span class="o">.</span><span class="n">sql</span><span class="p">]</span>
+</code></pre></div>
+
+<h3 id="backing-up-and-restoring-using-phpmyadmin">Backing Up and Restoring using PHPMyAdmin</h3>
+<p>It is assumed that you have phpMyAdmin installed since a lot of web service providers use it. To backup your MySQL database using PHPMyAdmin just follow a couple of steps:</p>
+<ul>
+<li>Open phpMyAdmin.</li>
+<li>Select your database by clicking the database name in the list on the left of the screen.</li>
+<li>Click the Export link. This should bring up a new screen that says View dump of database (or something similar).</li>
+<li>In the Export area, click the Select All link to choose all of the tables in your database.</li>
+<li>In the SQL options area, click the right options.</li>
+<li>Click on the Save as file option and the corresponding compression option and then click the &lsquo;Go&rsquo; button. A dialog box should appear prompting you to save the file locally.</li>
+</ul>
+<h3 id="restoring-your-database-is-easy-as-well-as-backing-it-up-make-the-following">Restoring your database is easy as well as backing it up. Make the following:</h3>
+<ul>
+<li>Open phpMyAdmin.</li>
+<li>Create an appropriately named database and select it by clicking the database name in the list on the left of the screen. If you would like to rewrite the backup over an existing database then click on the database name, select all the check boxes next to the table names and select Drop to delete all existing tables in the database.</li>
+<li>Click the SQL link. This should bring up a new screen where you can either type in SQL commands, or upload your SQL file.</li>
+<li>Use the browse button to find the database file.</li>
+<li>Click Go button. This will upload the backup, execute the SQL commands and re-create your database.</li>
+</ul>
+<h3 id="script-creation-multiple">Script création multiple</h3>
+<div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="ch">#!/bin/bash</span>
+
+<span class="k">while</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>line
+<span class="k">do</span>
+<span class="w">    </span><span class="nv">DB</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$DB</span>
+<span class="w">    </span><span class="nv">USER</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $2}&#39;</span><span class="k">)</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$USER</span>
+<span class="w">    </span><span class="nv">PASS</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $3}&#39;</span><span class="k">)</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$PASS</span>
+
+<span class="w">    </span>mysql<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;CREATE DATABASE </span><span class="si">${</span><span class="nv">DB</span><span class="si">}</span><span class="s2">;&quot;</span>
+<span class="w">    </span>mysql<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;CREATE USER </span><span class="si">${</span><span class="nv">USER</span><span class="si">}</span><span class="s2">@localhost IDENTIFIED BY &#39;</span><span class="si">${</span><span class="nv">PASS</span><span class="si">}</span><span class="s2">&#39;;&quot;</span>
+<span class="w">    </span>mysql<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;GRANT ALL PRIVILEGES ON </span><span class="si">${</span><span class="nv">DB</span><span class="si">}</span><span class="s2">.* TO &#39;</span><span class="si">${</span><span class="nv">USER</span><span class="si">}</span><span class="s2">&#39;@&#39;localhost&#39;;&quot;</span>
+<span class="w">    </span>mysql<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;FLUSH PRIVILEGES;&quot;</span>
+<span class="k">done</span>&lt;listing3
+</code></pre></div></td></tr></table></div>
+
+<h3 id="mettre-a-jour-le-pass-dun-user">Mettre à jour le pass d&rsquo;un user</h3>
+<div class="codehilite"><pre><span></span><code><span class="nv">ALTER</span><span class="w"> </span><span class="nv">USER</span><span class="w"> </span><span class="s1">&#39;userName&#39;</span>@<span class="s1">&#39;localhost&#39;</span><span class="w"> </span><span class="nv">IDENTIFIED</span><span class="w"> </span><span class="nv">BY</span><span class="w"> </span><span class="s1">&#39;New-Password-Here&#39;</span><span class="c1">;</span>
+<span class="nv">SET</span><span class="w"> </span><span class="nv">PASSWORD</span><span class="w"> </span><span class="k">FOR</span><span class="w"> </span><span class="s1">&#39;user-name-here&#39;</span>@<span class="s1">&#39;hostname&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">PASSWORD</span><span class="ss">(</span><span class="s1">&#39;new-password&#39;</span><span class="ss">)</span><span class="c1">;</span>
+</code></pre></div>
+
+<h3 id="purger-les-logs-binaires">Purger les logs binaires</h3>
+<div class="codehilite"><pre><span></span><code><span class="nt">PURGE</span><span class="w"> </span><span class="nt">BINARY</span><span class="w"> </span><span class="nt">LOGS</span><span class="w"> </span><span class="nt">TO</span><span class="w"> </span><span class="s1">&#39;mysql-bin.010&#39;</span><span class="o">;</span>
+<span class="nt">PURGE</span><span class="w"> </span><span class="nt">BINARY</span><span class="w"> </span><span class="nt">LOGS</span><span class="w"> </span><span class="nt">BEFORE</span><span class="w"> </span><span class="s1">&#39;2008-04-02 22:46:26&#39;</span><span class="o">;</span>
+</code></pre></div>
+
+<h3 id="gerer-les-processus">Gérer les processus</h3>
+<div class="codehilite"><pre><span></span><code><span class="nv">mysql</span><span class="o">&gt;</span><span class="w"> </span><span class="k">SHOW</span><span class="w"> </span><span class="nv">processlist</span><span class="c1">;</span>
+</code></pre></div>
+
+<h4 id="tuer-un-process">Tuer un process</h4>
+<div class="codehilite"><pre><span></span><code>KILL QUERY id
+</code></pre></div>
+
+<h4 id="tuer-plein-de-process">Tuer plein de process</h4>
+<div class="codehilite"><pre><span></span><code>select concat(&#39;KILL &#39;,id,&#39;;&#39;) from information_schema.processlist where user=&#39;fronte&#39; and command=&#39;Query&#39; into outfile &#39;/tmp/a.txt&#39;;
+source /tmp/a.txt;
+</code></pre></div>
+
+<h3 id="afficher-les-entetes-des-colonnes-dune-table">Afficher les entetes des colonnes d&rsquo;une table</h3>
+<div class="codehilite"><pre><span></span><code>select column_name from information_schema.columns where table_name=&#39;&lt;table_name&gt;&#39;;
+</code></pre></div>
+
+<h3 id="voir-les-moteurs-de-table">Voir les moteurs de table</h3>
+<div class="codehilite"><pre><span></span><code>SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = \&quot;$DB\&quot; ;
+</code></pre></div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a00a7c5e.min.js"></script>
+      
+    
+  </body>
+</html>
