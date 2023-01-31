@@ -12,12 +12,12 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy docs
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CUSTOM_DOMAIN: https://sjpp.github.io/notes/
           CONFIG_FILE: mkdocs.yml
           EXTRA_PACKAGES: build-base
