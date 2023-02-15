@@ -38,3 +38,14 @@ tags:
 8) Now activate the Logical Volume Name :
 
     lvchange -ay <lv-name>
+
+## Resize filesystem with LVM
+
+- resize disk in virtual machine manager (Proxmox or KVM)
+- resize partition with `fdisk` or `parted`
+- resize *pv*
+    pvresize /dev/vdaX
+- resize *lv* to full available size
+    lvresize -l +100%FREE /dev/mapper/lv-xxx
+- resize filesystem
+    resize2fs /dev/mapper/lv-xxx
