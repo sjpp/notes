@@ -54,3 +54,29 @@ Delete the <old_name> remote branch:
 
     git remote add origin github.com:yourhandle/yourrepo.git
     git push -u --force origin master
+
+## Delete a file from all commits in a branch
+
+    git filter-branch --tree-filter 'rm -rf path/to/file.ext' <BRANCH>
+
+## Delete all tags locally and remotely
+
+Delete All local tags. (Optional Recommended)
+
+    git tag -d $(git tag -l)
+
+Fetch remote All tags. (Optional Recommended)
+
+    git fetch
+
+Delete All remote tags.
+
+!!! note
+    pushing once should be faster than multiple times
+
+    git push origin --delete $(git tag -l) 
+
+Delete All local tags.
+
+    git tag -d $(git tag -l)
+
